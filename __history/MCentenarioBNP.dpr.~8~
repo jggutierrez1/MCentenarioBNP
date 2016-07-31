@@ -1,0 +1,38 @@
+program MCentenarioBNP;
+
+uses
+  Vcl.Forms,
+  Main in 'Main.pas' {fMain} ,
+  SplashForm in 'SplashForm.pas' {TSplashForm} ,
+  SplashForm2 in 'SplashForm2.pas' {TSplashForm2} ,
+  sndkey32 in 'sndkey32.pas',
+  About in 'About.pas' {fAbout} ,
+  Nwtools in 'Nwtools.pas',
+  NetworkFunctions in 'NetworkFunctions.pas',
+  BuscarGenM2 in 'BuscarGenM2.pas' {FBuscarGenM2} ,
+  TecladoGen1 in 'TecladoGen1.pas' {fTecladoGen1} ,
+  TecladoGen2 in 'TecladoGen2.pas' {fTecladoGen2} ,
+  AdjustGrid in 'AdjustGrid.pas',
+  AdjustGridEh in 'AdjustGridEh.pas',
+  acceso in 'acceso.pas' {Facceso} ,
+  usuarios in 'usuarios.pas' {Fusuarios} ,
+  UTEval in 'UTEval.pas',
+  Reportes in 'Reportes.pas',
+  Empresa in 'Empresa.pas' {fEmpresa} ,
+  Base64 in 'Base64.pas',
+  UtilesV20 in 'UtilesV20.pas' {fUtilesV20} ,
+  Proveedor in 'Proveedor.pas' {fProveedor} ,
+  imports_1 in 'imports_1.pas' {fimports_1} ,
+  Personal in 'Personal.pas' {fPersonal};
+
+{$R *.res}
+
+begin
+  Application.Initialize;
+  Application.MainFormOnTaskbar := True;
+  Application.CreateForm(TfUtilesV20, fUtilesV20);
+  fUtilesV20.Visible := false;
+  Application.CreateForm(TfMain, fMain);
+  Application.Run;
+
+end.

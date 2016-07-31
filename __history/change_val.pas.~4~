@@ -1,0 +1,48 @@
+unit change_val;
+
+interface
+
+uses
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, Vcl.ComCtrls, Vcl.Mask, DBCtrlsEh, Vcl.DBCtrls, Vcl.ExtCtrls;
+
+type
+  Tfchange_val = class(TForm)
+    StatusBar1: TStatusBar;
+    Button1: TButton;
+    Button2: TButton;
+    Label1: TLabel;
+    Label2: TLabel;
+    DBEdit2: TDBEdit;
+    DBNumberEditEh1: TDBNumberEditEh;
+    Shape1: TShape;
+    procedure Button2Click(Sender: TObject);
+    procedure Button1Click(Sender: TObject);
+  private
+    { Private declarations }
+  public
+    { Public declarations }
+  end;
+
+var
+  fchange_val: Tfchange_val;
+
+implementation
+
+uses UtilesV20, imports_1;
+
+{$R *.dfm}
+
+procedure Tfchange_val.Button1Click(Sender: TObject);
+begin
+  fimports_1.oQry_Ctas.post;
+  close;
+end;
+
+procedure Tfchange_val.Button2Click(Sender: TObject);
+begin
+  fimports_1.oQry_Ctas.Cancel;
+  close;
+end;
+
+end.

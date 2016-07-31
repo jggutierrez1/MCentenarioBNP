@@ -1,0 +1,142 @@
+unit Main;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  Dialogs, Menus, ToolWin, ComCtrls, StdCtrls, Buttons, ExtCtrls,
+  XPMan, Vcl.Imaging.jpeg, math, PngSpeedButton, ieview, imageenview;
+
+type
+  TfMain = class(TForm)
+    StatusBar1: TStatusBar;
+    MainMenu2: TMainMenu;
+    MenuItem1: TMenuItem;
+    MenuItem2: TMenuItem;
+    MenuItem3: TMenuItem;
+    MenuItem13: TMenuItem;
+    MenuItem20: TMenuItem;
+    MenuItem33: TMenuItem;
+    MenuItem34: TMenuItem;
+    MenuItem35: TMenuItem;
+    N1: TMenuItem;
+    Proveedores1: TMenuItem;
+    Button1: TButton;
+    procedure FormCreate(Sender: TObject);
+    procedure Salir1Click(Sender: TObject);
+    procedure Acercade1Click(Sender: TObject);
+    procedure Empresas1Click(Sender: TObject);
+    procedure Usuarios1Click(Sender: TObject);
+    procedure FormClose(Sender: TObject; var Action: TCloseAction);
+    function CropRect(const Dest: TRect; SrcWidth, SrcHeight: Integer): TRect;
+    procedure Proveedores1Click(Sender: TObject);
+    procedure Button1Click(Sender: TObject);
+  private
+    { Private declarations }
+    FGraphic: TGraphic;
+  public
+    { Public declarations }
+  end;
+
+var
+  fMain: TfMain;
+
+implementation
+
+uses
+  acceso, About, Empresa, UtilesV20, Proveedor,
+  usuarios, Base64, imports_1;
+{$R *.dfm}
+
+// Database_Backup_Restore,
+procedure TfMain.Acercade1Click(Sender: TObject);
+var
+  fAbout: TForm;
+begin
+  Application.CreateForm(TfAbout, fAbout);
+  fAbout.showmodal;
+  freeandnil(fAbout);
+end;
+
+procedure TfMain.Empresas1Click(Sender: TObject);
+begin
+  Application.CreateForm(TfEmpresa, fEmpresa);
+  fEmpresa.showmodal;
+  freeandnil(fEmpresa);
+end;
+
+procedure TfMain.FormClose(Sender: TObject; var Action: TCloseAction);
+begin
+  FGraphic.free;
+  fUtilesV20.close;
+  fUtilesV20.free;
+end;
+
+procedure TfMain.FormCreate(Sender: TObject);
+begin
+  Application.CreateForm(Tfacceso, facceso);
+  facceso.showmodal;
+  if (acceso.iPassOk = false) then
+  begin
+    facceso.free;
+    Application.Terminate;
+  end
+  else
+  begin
+    self.StatusBar1.Panels[0].Text := 'Usuario: ' + UtilesV20.sUserName;
+    self.StatusBar1.Panels[1].Text := 'Fecha: ' + formatDateTime('dd/mm/yyyy', now());
+    self.StatusBar1.Panels[2].Text := 'Empresa: ' + facceso.oLst_emp.Text;
+    self.StatusBar1.Panels[3].Text := 'Servidor: ' + fUtilesV20.oPublicCnn.Params.Values['Server'] + '/' +
+      fUtilesV20.oPublicCnn.Params.Values['Database'];
+    facceso.free;
+  end;
+end;
+
+procedure TfMain.Proveedores1Click(Sender: TObject);
+begin
+  Application.CreateForm(TfProveedor, fProveedor);
+  fProveedor.showmodal;
+  freeandnil(fProveedor);
+end;
+
+procedure TfMain.Salir1Click(Sender: TObject);
+begin
+  Application.Terminate;
+end;
+
+procedure TfMain.Usuarios1Click(Sender: TObject);
+begin
+  if (trim(UtilesV20.sUserName) <> 'ADMIN') and (trim(UtilesV20.sUserName) <> 'SUPER') then
+  begin
+    MessageDlg('Usuario no tiene acceso a esta opción.', mtWarning, [mbOK], 0);
+    exit;
+  end;
+  Application.CreateForm(TFusuarios, Fusuarios);
+  Fusuarios.showmodal;
+  freeandnil(Fusuarios);
+end;
+
+procedure TfMain.Button1Click(Sender: TObject);
+begin
+  Application.CreateForm(Tfimports_1, fimports_1);
+  fimports_1.showmodal;
+  freeandnil(fimports_1);
+end;
+
+function TfMain.CropRect(const Dest: TRect; SrcWidth, SrcHeight: Integer): TRect;
+var
+  W: Integer;
+  H: Integer;
+  Scale: Single;
+  X, Y, Z: Integer;
+begin
+  W := Dest.Right - Dest.Left;
+  H := Dest.Bottom - Dest.Top;
+  Scale := Max(W / SrcWidth, H / SrcHeight);
+  X := (W - Round(SrcWidth * Scale)) div 2;
+  Y := (H - Round(SrcHeight * Scale)) div 2;
+  with Dest do
+    Result := Rect((Left + X), (Top + Y), (Right - X), (Bottom - Y));
+end;
+
+end.

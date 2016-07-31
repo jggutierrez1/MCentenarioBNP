@@ -1,0 +1,517 @@
+unit Clientes;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, FileCtrl,
+  Variants, Classes, Graphics, Controls,
+  Forms, Dialogs, StdCtrls, DBCtrls,
+  Mask, ExtCtrls, ComCtrls, Buttons,
+  GridsEh, DBGridEh, DB, DBCtrlsEh,
+  PngBitBtn, PngSpeedButton, WideStrings,
+  SqlExpr, DBLookupEh,
+  FireDAC.Stan.Intf,
+  FireDAC.Stan.Option, FireDAC.Stan.Error, FireDAC.UI.Intf, FireDAC.Phys.Intf,
+  FireDAC.Stan.Def, FireDAC.Stan.Pool, FireDAC.Stan.Async, FireDAC.Phys,
+  FireDAC.Stan.Param, FireDAC.DatS, FireDAC.DApt.Intf, FireDAC.DApt,
+  FireDAC.Comp.DataSet, FireDAC.Comp.Client, FireDAC.Phys.MySQL, FireDAC.Phys.MySQLDef;
+
+type
+  TfClientes = class(TForm)
+    oDBNav: TDBNavigator;
+    PageControl1: TPageControl;
+    TabSheet1: TTabSheet;
+    oDS_Person: TDataSource;
+    StatusBar1: TStatusBar;
+    opers_inactivo: TDBCheckBox;
+    Label5: TLabel;
+    Label3: TLabel;
+    opers_nom_prim: TDBEdit;
+    Label4: TLabel;
+    TabSheet2: TTabSheet;
+    opers_nom_seg: TDBEdit;
+    opers_movil: TDBEdit;
+    opers_telef: TDBEdit;
+    Label7: TLabel;
+    Label8: TLabel;
+    Label10: TLabel;
+    opers_dire_1: TDBMemo;
+    opers_correo: TDBEdit;
+    Label12: TLabel;
+    oBtnExit: TPngBitBtn;
+    oBtnAbort: TPngBitBtn;
+    oBtnSave: TPngBitBtn;
+    oBtnFind: TPngBitBtn;
+    oBtnDelete: TPngBitBtn;
+    oBtnEdit: TPngBitBtn;
+    oBtnNew: TPngBitBtn;
+    oBtnPrint: TPngBitBtn;
+    oid_autoinc: TDBEdit;
+    Label14: TLabel;
+    opers_notas: TDBMemo;
+    Label15: TLabel;
+    Label16: TLabel;
+    opers_fecha_crea: TDBDateTimeEditEh;
+    Label17: TLabel;
+    opers_fecha_mod: TDBDateTimeEditEh;
+    otPerson: TFDTable;
+    Label11: TLabel;
+    opers_apell_prim: TDBEdit;
+    Label21: TLabel;
+    opers_apell_seg: TDBEdit;
+    opers_nip: TDBEdit;
+    Label22: TLabel;
+    opers_sexo: TDBComboBoxEh;
+    Label23: TLabel;
+    opers_estado_civil: TDBComboBoxEh;
+    opers_pais: TDBLookupComboBox;
+    DBEdit5: TDBEdit;
+    Label24: TLabel;
+    Label9: TLabel;
+    Label25: TLabel;
+    opers_dire_2: TDBMemo;
+    Label18: TLabel;
+    opers_fecha_nac: TDBDateTimeEditEh;
+    oBtn_Pais: TBitBtn;
+    DBNumberEditEh1: TDBNumberEditEh;
+    procedure Action_Control(pOption: integer);
+    procedure oBtnNewClick(Sender: TObject);
+    procedure oBtnEditClick(Sender: TObject);
+    procedure oBtnDeleteClick(Sender: TObject);
+    procedure oBtnFindClick(Sender: TObject);
+    procedure oBtnPrintClick(Sender: TObject);
+    procedure oBtnSaveClick(Sender: TObject);
+    procedure oBtnAbortClick(Sender: TObject);
+    procedure oBtnExitClick(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
+    procedure ZTable1AfterPost(DataSet: TDataSet);
+    procedure FormShow(Sender: TObject);
+    procedure opers_nom_primKeyPress(Sender: TObject; var Key: Char);
+    procedure opers_nom_segKeyPress(Sender: TObject; var Key: Char);
+    procedure opers_correoKeyPress(Sender: TObject; var Key: Char);
+    procedure opers_movilKeyPress(Sender: TObject; var Key: Char);
+    procedure opers_telefKeyPress(Sender: TObject; var Key: Char);
+    procedure oFaxKeyPress(Sender: TObject; var Key: Char);
+    procedure oid_autoincKeyPress(Sender: TObject; var Key: Char);
+    procedure DBEdit1KeyPress(Sender: TObject; var Key: Char);
+    procedure Activa_Objetos(bPar: boolean);
+    procedure opers_nom_primExit(Sender: TObject);
+    procedure otPersonAfterInsert(DataSet: TDataSet);
+    procedure otPersonBeforePost(DataSet: TDataSet);
+    procedure oLst_RutasKeyPress(Sender: TObject; var Key: Char);
+    procedure oLst_MinucipioKeyPress(Sender: TObject; var Key: Char);
+    procedure opers_apell_primExit(Sender: TObject);
+    procedure opers_nom_segExit(Sender: TObject);
+    procedure opers_apell_segExit(Sender: TObject);
+    procedure opers_apell_primKeyPress(Sender: TObject; var Key: Char);
+    procedure opers_nom_segKeyDown(Sender: TObject; var Key: Word;
+      Shift: TShiftState);
+    procedure opers_apell_segKeyPress(Sender: TObject; var Key: Char);
+    procedure opers_nipKeyPress(Sender: TObject; var Key: Char);
+  private
+    { Private declarations }
+  public
+    { Public declarations }
+  end;
+
+var
+  fClientes: TfClientes;
+
+implementation
+
+USES UtilesV20, BuscarGenM2, Municipios, Rutas;
+{$R *.dfm}
+
+procedure TfClientes.DBEdit1KeyPress(Sender: TObject; var Key: Char);
+begin
+  if Key = #13 then { if it's an enter key }
+  begin
+    Key := #0; { eat enter key }
+    Perform(WM_NEXTDLGCTL, 0, 0); { move to next control }
+  end
+end;
+
+procedure TfClientes.FormCreate(Sender: TObject);
+begin
+  // self.ResizeKit1.Enabled := utiles.Ctrl_Resize;
+  freeandnil(oConection);
+  self.PageControl1.ActivePageIndex := 0;
+  self.otPerson.Connection := fUtilesV20.oPublicCnn;
+  self.otMunicipios.Connection := fUtilesV20.oPublicCnn;
+  self.otRutas.Connection := fUtilesV20.oPublicCnn;
+  self.oDS_Municipios.DataSet := otMunicipios;
+  self.otMunicipios.Active := true;
+  self.oDS_Person.DataSet := otPerson;
+  self.oDS_Person.Enabled := true;
+  self.otPerson.Active := true;
+
+  self.oDS_Rutas.DataSet := otRutas;
+  self.oDS_Rutas.Enabled := true;
+  self.otRutas.Active := true;
+
+  self.otMunicipios.Active := true;
+  self.oCk_CteUnico.Caption := 'Cliente Único de: ' + fUtilesV20.query_selectgen_result
+    ('SELECT emp_descripcion FROM empresas WHERE emp_id="' + IntToStr(UtilesV20.iId_Empresa) + '"');
+  { self.otPerson.Filter := 'cte_emp_id="' + IntToStr(utiles.iId_Empresa) + '" ';
+    self.otPerson.Filtered := true;
+  }
+end;
+
+procedure TfClientes.FormShow(Sender: TObject);
+begin
+  self.PageControl1.ActivePageIndex := 0;
+  self.Action_Control(6);
+  self.Activa_Objetos(false);
+end;
+
+procedure TfClientes.oBtnAbortClick(Sender: TObject);
+begin
+  self.otPerson.Cancel;
+  self.Action_Control(7);
+  self.Activa_Objetos(false);
+  self.PageControl1.ActivePageIndex := 0;
+end;
+
+procedure TfClientes.oBtnDeleteClick(Sender: TObject);
+var
+  nResp: integer;
+begin
+  if self.otPerson.isEmpty then
+  begin
+    self.Action_Control(6);
+    exit;
+  end;
+  self.Action_Control(3);
+  nResp := MessageDlg('Seguro que desea borrar eliminar el registro alctual?', mtConfirmation, [mbYes, mbNo], 0);
+  If (nResp = mrYes) Then
+  begin
+    self.oDBNav.DataSource.DataSet.Delete;
+    self.oDBNav.DataSource.DataSet.Refresh;
+  end;
+
+end;
+
+procedure TfClientes.oBtnEditClick(Sender: TObject);
+begin
+  if self.otPerson.isEmpty then
+  begin
+    self.Action_Control(6);
+    exit;
+  end;
+  self.PageControl1.ActivePageIndex := 0;
+  self.otPerson.Edit;
+  self.Action_Control(2);
+  self.Activa_Objetos(true);
+  self.opers_nom_prim.SetFocus;
+end;
+
+procedure TfClientes.oBtnExitClick(Sender: TObject);
+begin
+  self.close;
+end;
+
+procedure TfClientes.oBtnFindClick(Sender: TObject);
+begin
+  self.Action_Control(4);
+
+  Application.CreateForm(TfBuscarGenM2, fBuscarGenM2);
+  fBuscarGenM2.Hide;
+  fBuscarGenM2.oLst_campos.Clear;
+
+  BuscarGenM2.oListData[1].Texto := 'Código';
+  BuscarGenM2.oListData[1].Campo := 'cte_id';
+  BuscarGenM2.oListData[1].LLave := true;
+
+  BuscarGenM2.oListData[2].Texto := 'Nombre Comercial';
+  BuscarGenM2.oListData[2].Campo := 'cte_nombre_com';
+  BuscarGenM2.oListData[2].LLave := false;
+
+  BuscarGenM2.oListData[3].Texto := 'Nombre Fiscal';
+  BuscarGenM2.oListData[3].Campo := 'cte_nombre_loc';
+  BuscarGenM2.oListData[3].LLave := false;
+
+  fBuscarGenM2.oSql1.Clear;
+  fBuscarGenM2.oSql1.Lines.Add
+    ('SELECT cte_id,UCASE(cte_nombre_com) as cte_nombre_com,UCASE(cte_nombre_loc) as cte_nombre_loc FROM clientes WHERE 1=1 ');
+  fBuscarGenM2.ShowModal;
+  if BuscarGenM2.vFindResult <> '' then
+    self.oDBNav.DataSource.DataSet.Locate('cte_id', BuscarGenM2.vFindResult, []);
+  freeandnil(fBuscarGenM2);
+end;
+
+procedure TfClientes.oBtnNewClick(Sender: TObject);
+begin
+  self.PageControl1.ActivePageIndex := 0;
+  self.otPerson.Insert;
+  self.opers_inactivo.Checked := true;
+  self.Action_Control(1);
+  self.Activa_Objetos(true);
+  self.otPerson.FieldByName('pers_inactivo').Value := 0;
+  self.otPerson.FieldByName('cte_emp_id').AsInteger := UtilesV20.iId_Empresa;
+  self.oLst_Minucipio.KeyValue := 1;
+  self.oLst_Rutas.KeyValue := 1;
+  self.opers_nom_prim.SetFocus;
+end;
+
+procedure TfClientes.oBtnPrintClick(Sender: TObject);
+begin
+  self.Action_Control(5);
+  ShowMessage('Opción aún no programada.');
+end;
+
+procedure TfClientes.oBtnSaveClick(Sender: TObject);
+begin
+  self.otPerson.post;
+  self.Action_Control(6);
+  self.Activa_Objetos(false);
+  self.PageControl1.ActivePageIndex := 0;
+end;
+
+procedure TfClientes.opers_apell_primExit(Sender: TObject);
+begin
+  if ((fUtilesV20.isEmpty(self.opers_apell_prim.text) = true) or (self.opers_apell_prim.text = null)) then
+    self.otPerson.FieldByName('pers_apell_prim').AsString := self.opers_apell_prim.text;
+end;
+
+procedure TfClientes.opers_apell_primKeyPress(Sender: TObject; var Key: Char);
+begin
+  if Key = #13 then { if it's an enter key }
+  begin
+    Key := #0; { eat enter key }
+    Perform(WM_NEXTDLGCTL, 0, 0); { move to next control }
+  end;
+end;
+
+procedure TfClientes.opers_apell_segExit(Sender: TObject);
+begin
+  if ((fUtilesV20.isEmpty(self.opers_apell_seg.text) = true) or (self.opers_apell_seg.text = null)) then
+    self.otPerson.FieldByName('pers_apell_seg').AsString := self.opers_apell_seg.text;
+
+end;
+
+procedure TfClientes.opers_apell_segKeyPress(Sender: TObject; var Key: Char);
+begin
+  if Key = #13 then { if it's an enter key }
+  begin
+    Key := #0; { eat enter key }
+    Perform(WM_NEXTDLGCTL, 0, 0); { move to next control }
+  end;
+end;
+
+procedure TfClientes.opers_correoKeyPress(Sender: TObject; var Key: Char);
+begin
+  if Key = #13 then { if it's an enter key }
+  begin
+    Key := #0; { eat enter key }
+    Perform(WM_NEXTDLGCTL, 0, 0); { move to next control }
+  end
+end;
+
+procedure TfClientes.oFaxKeyPress(Sender: TObject; var Key: Char);
+begin
+  if Key = #13 then { if it's an enter key }
+  begin
+    Key := #0; { eat enter key }
+    Perform(WM_NEXTDLGCTL, 0, 0); { move to next control }
+  end
+end;
+
+procedure TfClientes.oid_autoincKeyPress(Sender: TObject; var Key: Char);
+begin
+  if Key = #13 then { if it's an enter key }
+  begin
+    Key := #0; { eat enter key }
+    Perform(WM_NEXTDLGCTL, 0, 0); { move to next control }
+  end
+end;
+
+procedure TfClientes.oLst_MinucipioKeyPress(Sender: TObject; var Key: Char);
+begin
+  if Key = #13 then { if it's an enter key }
+  begin
+    Key := #0; { eat enter key }
+    Perform(WM_NEXTDLGCTL, 0, 0); { move to next control }
+  end
+end;
+
+procedure TfClientes.oLst_RutasKeyPress(Sender: TObject; var Key: Char);
+begin
+  if Key = #13 then { if it's an enter key }
+  begin
+    Key := #0; { eat enter key }
+    Perform(WM_NEXTDLGCTL, 0, 0); { move to next control }
+  end
+end;
+
+procedure TfClientes.opers_nom_primExit(Sender: TObject);
+begin
+  if ((fUtilesV20.isEmpty(self.opers_nom_prim.text) = true) or (self.opers_nom_prim.text = null)) then
+    self.otPerson.FieldByName('pers_nom_prim').AsString := self.opers_nom_prim.text;
+end;
+
+procedure TfClientes.opers_nom_primKeyPress(Sender: TObject; var Key: Char);
+begin
+  if Key = #13 then { if it's an enter key }
+  begin
+    Key := #0; { eat enter key }
+    Perform(WM_NEXTDLGCTL, 0, 0); { move to next control }
+  end
+end;
+
+procedure TfClientes.opers_nom_segExit(Sender: TObject);
+begin
+  if ((fUtilesV20.isEmpty(self.opers_nom_seg.text) = true) or (self.opers_nom_seg.text = null)) then
+    self.otPerson.FieldByName('pers_nom_seg').AsString := self.opers_nom_seg.text;
+
+end;
+
+procedure TfClientes.opers_nom_segKeyPress(Sender: TObject; var Key: Char);
+begin
+  if Key = #13 then { if it's an enter key }
+  begin
+    Key := #0; { eat enter key }
+    Perform(WM_NEXTDLGCTL, 0, 0); { move to next control }
+  end
+end;
+
+procedure TfClientes.otPersonAfterInsert(DataSet: TDataSet);
+begin
+  if (DataSet.State in [dsInsert]) then
+  begin
+    DataSet.FieldByName('cte_notas').Value := '';
+    DataSet.FieldByName('cte_direccion').Value := '';
+    DataSet.FieldByName('pers_inactivo').Value := 0;
+  end;
+end;
+
+procedure TfClientes.otPersonBeforePost(DataSet: TDataSet);
+begin
+  if (DataSet.State in [dsEdit, dsInsert]) then
+  begin
+    if fUtilesV20.isEmpty(DataSet.FieldByName('cte_nombre_com').AsString) then
+    begin
+      ShowMessage('Para crear el cliente, es necesario por lo menos el nombre.');
+      self.PageControl1.TabIndex := 0;
+      self.oNombreCom.SetFocus;
+      abort;
+    end;
+
+    if (DataSet.State = dsEdit) then
+    begin
+      DataSet.FieldByName('cte_fecha_modif').Value := now();
+      DataSet.FieldByName('u_usuario_modif').Value := UtilesV20.sUserName;
+    end
+    else if (DataSet.State = dsInsert) then
+    begin
+      DataSet.FieldByName('cte_fecha_alta').Value := now();
+      DataSet.FieldByName('u_usuario_alta').Value := UtilesV20.sUserName;
+      DataSet.FieldByName('cte_fecha_Modif').AsDateTime := now();
+      DataSet.FieldByName('u_usuario_modif').Value := UtilesV20.sUserName;
+    end;
+    if DataSet.FieldByName('cte_unico_emp').Value = 1 then
+      DataSet.FieldByName('cte_emp_id').AsInteger := UtilesV20.iId_Empresa
+    else
+      DataSet.FieldByName('cte_emp_id').AsInteger := 0;
+  end;
+end;
+
+procedure TfClientes.opers_movilKeyPress(Sender: TObject; var Key: Char);
+begin
+  if Key = #13 then { if it's an enter key }
+  begin
+    Key := #0; { eat enter key }
+    Perform(WM_NEXTDLGCTL, 0, 0); { move to next control }
+  end
+end;
+
+procedure TfClientes.opers_telefKeyPress(Sender: TObject; var Key: Char);
+begin
+  if Key = #13 then { if it's an enter key }
+  begin
+    Key := #0; { eat enter key }
+    Perform(WM_NEXTDLGCTL, 0, 0); { move to next control }
+  end
+end;
+
+procedure TfClientes.ZTable1AfterPost(DataSet: TDataSet);
+begin
+  if fUtilesV20.isEmpty(DataSet.FieldByName('cte_nombre_com').AsString) then
+  begin
+    ShowMessage('Para crear un cliente es necesario por lo menos el nombre del cliente.');
+    abort;
+  end;
+end;
+
+procedure TfClientes.Action_Control(pOption: integer);
+begin
+  if ((pOption = 1) or (pOption = 2)) then
+  begin
+    oDBNav.Visible := false;
+    oBtnNew.Visible := false;
+    oBtnEdit.Visible := false;
+    oBtnDelete.Visible := false;
+    oBtnFind.Visible := false;
+    oBtnPrint.Visible := false;
+    oBtnExit.Enabled := false;
+
+    oBtnSave.Top := oBtnNew.Top;
+    oBtnSave.Left := oBtnNew.Left;
+
+    oBtnAbort.Top := oBtnEdit.Top;
+    oBtnAbort.Left := oBtnEdit.Left;
+
+    oBtnAbort.Visible := true;
+    oBtnSave.Visible := true;
+    oBtnExit.Visible := false;
+
+  end;
+
+  if ((pOption = 6) or (pOption = 7)) then
+  begin
+    oDBNav.Visible := true;
+    oBtnNew.Visible := true;
+    oBtnEdit.Visible := true;
+    oBtnDelete.Visible := true;
+    oBtnFind.Visible := true;
+    oBtnPrint.Visible := false;
+    oBtnExit.Enabled := true;
+    oBtnSave.Top := oBtnNew.Top;
+    oBtnSave.Left := oBtnNew.Left;
+
+    oBtnAbort.Top := oBtnEdit.Top;
+    oBtnAbort.Left := oBtnEdit.Left;
+
+    oBtnAbort.Visible := false;
+    oBtnSave.Visible := false;
+    oBtnExit.Visible := true;
+
+  end;
+
+end;
+
+procedure TfClientes.Activa_Objetos(bPar: boolean);
+var
+  i: Word;
+begin
+  for i := 0 to self.ComponentCount - 1 do
+  begin
+    if (self.Components[i] is TDBEdit) then
+      TDBEdit(self.Components[i]).Enabled := bPar;
+    if (self.Components[i] is TDBMemo) then
+      TDBMemo(self.Components[i]).Enabled := bPar;
+    if (self.Components[i] is TDBNumberEditEh) then
+      TDBNumberEditEh(self.Components[i]).Enabled := bPar;
+    if (self.Components[i] is TDBCheckBox) then
+      TDBCheckBox(self.Components[i]).Enabled := bPar;
+    if (self.Components[i] is TDBLookupComboBox) then
+      TDBLookupComboBox(self.Components[i]).Enabled := bPar;
+    if (self.Components[i] is TBitBtn) then
+    begin
+      if TBitBtn(self.Components[i]).tag = 20 then
+        TBitBtn(self.Components[i]).Enabled := bPar;
+    end;
+  end;
+  self.oID.Enabled := false;
+end;
+
+end.
